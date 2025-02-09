@@ -1,0 +1,11 @@
+/* 防止整体页面滚动 */
+html, body {
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  height: 100vh;
+}
+
+#app {
+  height: 100vh;
+} 
