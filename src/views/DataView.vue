@@ -1,3 +1,10 @@
+<!--
+ * @Author: shawicx d35f3153@proton.me
+ * @Date: 2025-03-02 12:39:39
+ * @LastEditors: shawicx d35f3153@proton.me
+ * @LastEditTime: 2025-03-02 12:40:12
+ * @Description: 数据视图
+-->
 <script setup>
 import ChinaRegions from './components/data/ChinaRegions.vue';
 import RandomData from './components/data/RandomData.vue';

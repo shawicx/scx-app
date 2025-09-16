@@ -9,6 +9,7 @@ import { RouterLink, RouterView } from "vue-router";
         <RouterLink to="/">首页</RouterLink>
         <RouterLink to="/file">文件</RouterLink>
         <RouterLink to="/data">数据</RouterLink>
+        <!-- <RouterLink to="/audio">录音</RouterLink> -->
       </nav>
     </header>
     <main class="scx-content">
