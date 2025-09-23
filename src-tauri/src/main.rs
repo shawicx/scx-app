@@ -22,6 +22,7 @@ fn main() {
             random::generate_id_card,
             random::generate_string,
             random::generate_strong_password,
+            random::generate_date,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

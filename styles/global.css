@@ -1,5 +1,6 @@
 /* 防止整体页面滚动 */
-html, body {
+html,
+body {
   margin: 0;
   padding: 0;
   overflow: hidden;
@@ -8,4 +9,4 @@ html, body {
 
 #app {
   height: 100vh;
-} 
+}
