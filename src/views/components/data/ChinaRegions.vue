@@ -2,6 +2,7 @@
 import { onMounted, ref } from "vue";
 import axios from "axios";
 import { useToast } from "primevue/usetoast";
+import Loading from "^/components/Loading.vue";
 
 // 数据源URL
 const SourceUrl = "https://geo.datav.aliyun.com/areas_v3/bound";
@@ -20,7 +21,9 @@ const cities = ref([]); // 城市数据
 const counties = ref([]); // 区县数据
 const selectedProvince = ref({ code: null, name: null }); // 选中的省份
 const selectedCity = ref({ code: null, name: null }); // 选中的城市
-const loading = ref(true); // 加载状态
+const loading = ref(true); // 省份加载状态
+const citiesLoading = ref(false); // 城市加载状态
+const countiesLoading = ref(false); // 区县加载状态
 
 // 下载所有当前等级数据
 const downloadAllCurrentLevelData = async () => {
@@ -114,8 +117,8 @@ const selectProvince = async (province) => {
   selectedProvince.value = { code: province.code, name: province.name }; // 存储省份的code和name
   cities.value = [];
   counties.value = [];
+  activeTab.value = LevelMap.City; // 先切换到城市标签
   await handleProvinceChange();
-  activeTab.value = LevelMap.City; // 切换到城市标签
 };
 
 /**
@@ -125,8 +128,8 @@ const selectProvince = async (province) => {
 const selectCity = async (city) => {
   selectedCity.value = { code: city.code, name: city.name }; // 存储城市的code和name
   counties.value = [];
+  activeTab.value = LevelMap.County; // 先切换到区县标签
   await handleCityChange();
-  activeTab.value = LevelMap.County; // 切换到区县标签
 };
 
 // 加载城市数据
@@ -135,6 +138,7 @@ const handleProvinceChange = async () => {
   counties.value = [];
   if (!selectedProvince.value.code) return;
 
+  citiesLoading.value = true;
   try {
     const response = await axios.get(
       `${SourceUrl}/${selectedProvince.value.code}_full.json`,
@@ -161,6 +165,8 @@ const handleProvinceChange = async () => {
       detail: "加载城市数据失败",
       life: 3000,
     });
+  } finally {
+    citiesLoading.value = false;
   }
 };
 
@@ -168,6 +174,7 @@ const handleProvinceChange = async () => {
 const handleCityChange = async () => {
   if (!selectedCity.value.code) return;
 
+  countiesLoading.value = true;
   try {
     const response = await axios.get(
       `${SourceUrl}/${selectedCity.value.code}_full.json`,
@@ -194,6 +201,8 @@ const handleCityChange = async () => {
       detail: "加载区县数据失败",
       life: 3000,
     });
+  } finally {
+    countiesLoading.value = false;
   }
 };
 
@@ -235,10 +244,13 @@ const onBreadClick = (level) => {
     selectedCity.value = null;
     selectedProvince.value = null;
     activeTab.value = LevelMap.Province;
+    citiesLoading.value = false;
+    countiesLoading.value = false;
   }
   if (level === LevelMap.City) {
     selectedCity.value = null;
     activeTab.value = LevelMap.City;
+    countiesLoading.value = false;
   }
 };
 
@@ -263,33 +275,50 @@ onMounted(() => {
     </div>
     <!-- 全局下载按钮 -->
     <Button @click="downloadAllCurrentLevelData">下载所有数据</Button>
-    <div v-if="activeTab === LevelMap.Province" class="region-list">
-      <div
-        v-for="province in provinces"
-        :key="province.code"
-        class="region-card"
-        @click="selectProvince(province)"
-      >
-        <div class="region-name">{{ province.name }}</div>
-        <Button @click.stop="downloadRegionData(province)">下载数据</Button>
+    <!-- 省份列表 -->
+    <div v-if="activeTab === LevelMap.Province" class="region-container">
+      <div class="region-list">
+        <div
+          v-for="province in provinces"
+          :key="province.code"
+          class="region-card"
+          @click="selectProvince(province)"
+        >
+          <div class="region-name">{{ province.name }}</div>
+          <Button @click.stop="downloadRegionData(province)">下载数据</Button>
+        </div>
       </div>
+      <!-- 加载蒙层 -->
+      <Loading :visible="loading" text="正在加载省份数据..." />
     </div>
-    <div v-if="activeTab === LevelMap.City" class="region-list">
-      <div
-        v-for="city in cities"
-        :key="city.code"
-        class="region-card"
-        @click="selectCity(city)"
-      >
-        <div class="region-name">{{ city.name }}</div>
-        <Button @click.stop="downloadRegionData(city)">下载数据</Button>
+
+    <!-- 城市列表 -->
+    <div v-if="activeTab === LevelMap.City" class="region-container">
+      <div class="region-list">
+        <div
+          v-for="city in cities"
+          :key="city.code"
+          class="region-card"
+          @click="selectCity(city)"
+        >
+          <div class="region-name">{{ city.name }}</div>
+          <Button @click.stop="downloadRegionData(city)">下载数据</Button>
+        </div>
       </div>
+      <!-- 加载蒙层 -->
+      <Loading :visible="citiesLoading" text="正在加载城市数据..." />
     </div>
-    <div v-if="activeTab === LevelMap.County" class="region-list">
-      <div v-for="county in counties" :key="county.code" class="region-card">
-        <div class="region-name">{{ county.name }}</div>
-        <Button @click.stop="downloadRegionData(county)">下载数据</Button>
+
+    <!-- 区县列表 -->
+    <div v-if="activeTab === LevelMap.County" class="region-container">
+      <div class="region-list">
+        <div v-for="county in counties" :key="county.code" class="region-card">
+          <div class="region-name">{{ county.name }}</div>
+          <Button @click.stop="downloadRegionData(county)">下载数据</Button>
+        </div>
       </div>
+      <!-- 加载蒙层 -->
+      <Loading :visible="countiesLoading" text="正在加载区县数据..." />
     </div>
   </div>
 </template>
@@ -297,6 +326,11 @@ onMounted(() => {
 <style lang="scss" scoped>
 .china-regions {
   width: 100%;
+
+  .region-container {
+    position: relative;
+    min-height: 200px;
+  }
 
   .region-list {
     display: flex;
@@ -329,32 +363,6 @@ onMounted(() => {
     text-align: left;
     font-size: 1rem;
     color: #303133;
-  }
-
-  // PrimeVue组件样式覆盖
-  :deep {
-    .p-dataview-grid {
-      margin: 0 -0.5rem;
-    }
-
-    .p-card-content {
-      padding: 0;
-    }
-  }
-
-  // 加载状态样式
-  .loading-container {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: 1rem;
-
-    .loading-text {
-      margin-top: 1rem;
-      color: #606266;
-      font-size: 0.9rem;
-    }
   }
 }
 

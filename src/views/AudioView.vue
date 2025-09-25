@@ -3,7 +3,7 @@
  * @Description: 音频视图
 -->
 <script setup>
-import AudioRecorder from './components/audio/AudioRecorder.vue';
+import AudioRecorder from "./components/audio/AudioRecorder.vue";
 </script>
 
 <template>
@@ -18,8 +18,3 @@ import AudioRecorder from './components/audio/AudioRecorder.vue';
     </TabPanels>
   </Tabs>
 </template>
-
-<style scoped>
-
-</style>
-
