@@ -28,7 +28,7 @@ Define the API contract for the feature implementation workflow system that oper
   "planPath": "string",
   "artifacts": {
     "research": "string",
-    "dataModel": "string", 
+    "dataModel": "string",
     "contracts": "Array<string>",
     "quickstart": "string"
   },

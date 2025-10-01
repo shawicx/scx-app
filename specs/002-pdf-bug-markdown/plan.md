@@ -1,8 +1,8 @@
 
-# Implementation Plan: [FEATURE]
+# Implementation Plan: Multi-Function Desktop App - PDF, Data & Audio Tools
 
-**Branch**: `[###-feature-name]` | **Date**: [DATE] | **Spec**: [link]
-**Input**: Feature specification from `/specs/[###-feature-name]/spec.md`
+**Branch**: `002-pdf-bug-markdown` | **Date**: 2025-09-30 | **Spec**: [spec.md](spec.md)
+**Input**: Feature specification from `/specs/002-pdf-bug-markdown/spec.md`
 
 ## Execution Flow (/plan command scope)
 ```
@@ -31,23 +31,29 @@
 - Phase 3-4: Implementation execution (manual or via tools)
 
 ## Summary
-[Extract from feature spec: primary requirement + technical approach from research]
+Implement comprehensive desktop application functionality for file processing (PDF/image conversion fixes, markdown to PDF), data handling (copy function, loading optimization), and audio tools (recording to text, waveform visualization, trimming, format conversion, merging, volume controls). The plan will follow constitutional principles of multi-platform desktop application design, Tauri v2 + Vue 3 architecture, test-first approach, secure-by-default implementation, and cross-platform performance. The technical approach involves research, data modeling, API contracts, and task planning phases with specific engineering guidelines for PrimeVue components, Tailwind CSS styling, and Rust package management.
 
 ## Technical Context
-**Language/Version**: [e.g., Python 3.11, Swift 5.9, Rust 1.75 or NEEDS CLARIFICATION]  
-**Primary Dependencies**: [e.g., FastAPI, UIKit, LLVM or NEEDS CLARIFICATION]  
-**Storage**: [if applicable, e.g., PostgreSQL, CoreData, files or N/A]  
-**Testing**: [e.g., pytest, XCTest, cargo test or NEEDS CLARIFICATION]  
-**Target Platform**: [e.g., Linux server, iOS 15+, WASM or NEEDS CLARIFICATION]
-**Project Type**: [single/web/mobile - determines source structure]  
-**Performance Goals**: [domain-specific, e.g., 1000 req/s, 10k lines/sec, 60 fps or NEEDS CLARIFICATION]  
-**Constraints**: [domain-specific, e.g., <200ms p95, <100MB memory, offline-capable or NEEDS CLARIFICATION]  
-**Scale/Scope**: [domain-specific, e.g., 10k users, 1M LOC, 50 screens or NEEDS CLARIFICATION]
+**Language/Version**: JavaScript/TypeScript, Vue 3, Tauri 2.x, Rust 1.75+  
+**Primary Dependencies**: @tauri-apps/api, @tauri-apps/cli, vue, primevue, tailwindcss, pdfjs-dist, jszip, file-saver, wavesurfer.js  
+**Storage**: Local file system via Tauri APIs, browser storage  
+**Testing**: vitest for unit tests, manual testing for cross-platform validation  
+**Target Platform**: Desktop applications for Windows, macOS, and Linux
+**Project Type**: Desktop application (single project using Tauri + Vue 3)  
+**Performance Goals**: Responsive UI with <200ms interaction response, efficient large file handling  
+**Constraints**: Tauri security model, cross-platform compatibility, native OS integration, memory limits for large file processing  
+**Scale/Scope**: Single-user desktop application, file-based workflows, audio processing capabilities
 
 ## Constitution Check
 *GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
 
-[Gates determined based on constitution file]
+1. **Multi-Platform Desktop Application**: All features designed for personal users across platforms with responsive, performant UI for file/data/media processing
+2. **Tauri v2 + Vue 3 Architecture**: Frontend uses Vue 3 Composition API with Tauri v2 for native system access, following security model with proper permission scoping
+3. **Test-First (NON-NEGOTIABLE)**: TDD approach with tests written before implementation, Red-Green-Refactor cycle enforced, coverage >85% for file/media components
+4. **Secure by Default**: API permissions properly configured for file system and audio/video, least-privilege principle enforced, malicious file execution prevented
+5. **Multi-Platform Distribution & Performance**: Features work identically across Windows, macOS, and Linux, with performance on minimum spec systems, especially for media processing
+6. **File Processing & Data Handling**: All I/O via Tauri secure APIs, large files chunked/streamed, data integrity verification required
+7. **Media Processing Standards**: Processing offloaded to native Rust backend, proper memory management, asynchronous processing for smooth UI
 
 ## Project Structure
 
@@ -63,50 +69,90 @@ specs/[###-feature]/
 ```
 
 ### Source Code (repository root)
-<!--
-  ACTION REQUIRED: Replace the placeholder tree below with the concrete layout
-  for this feature. Delete unused options and expand the chosen structure with
-  real paths (e.g., apps/admin, packages/something). The delivered plan must
-  not include Option labels.
--->
 ```
-# [REMOVE IF UNUSED] Option 1: Single project (DEFAULT)
 src/
+├── components/
+│   ├── file-processing/
+│   │   ├── pdf-to-image/
+│   │   ├── markdown-to-pdf/
+│   │   └── file-processor.vue
+│   ├── data-tools/
+│   │   ├── random-data-generator/
+│   │   ├── china-regions/
+│   │   └── text-comparison/
+│   ├── audio-tools/
+│   │   ├── audio-recorder/
+│   │   ├── waveform-visualizer/
+│   │   ├── audio-editor/
+│   │   └── audio-converter/
+│   ├── common/
+│   │   ├── loading-spinner/
+│   │   └── file-upload/
+│   └── ui/
+│       ├── PrimeVue-extended/
+│       └── layout/
 ├── models/
+│   ├── file-job.js
+│   ├── audio-job.js
+│   ├── generated-data.js
+│   ├── china-regions-data.js
+│   ├── audio-file.js
+│   └── text-document.js
 ├── services/
-├── cli/
-└── lib/
+│   ├── file-processing-service.js
+│   ├── data-generation-service.js
+│   ├── audio-processing-service.js
+│   ├── china-regions-service.js
+│   └── text-comparison-service.js
+├── views/
+│   ├── FileProcessingView.vue
+│   ├── DataToolsView.vue
+│   └── AudioToolsView.vue
+├── lib/
+│   ├── api-helpers.js
+│   ├── logging.js
+│   ├── security.js
+│   └── validation.js
+├── composables/
+│   ├── use-file-processing.js
+│   ├── use-audio-processing.js
+│   └── use-data-generation.js
+└── assets/
+    ├── styles/
+    │   └── main.css (tailwind imports and custom styles)
+    └── icons/
+
+src-tauri/
+├── src/
+│   ├── lib.rs
+│   └── audio/
+│       ├── mod.rs
+│       ├── processing.rs
+│       └── metadata.rs
+├── Cargo.toml
+└── build.rs
+
+public/
+├── assets/
+└── icons/
 
 tests/
-├── contract/
-├── integration/
-└── unit/
-
-# [REMOVE IF UNUSED] Option 2: Web application (when "frontend" + "backend" detected)
-backend/
-├── src/
-│   ├── models/
-│   ├── services/
-│   └── api/
-└── tests/
-
-frontend/
-├── src/
+├── unit/
 │   ├── components/
-│   ├── pages/
+│   ├── models/
 │   └── services/
-└── tests/
+├── integration/
+│   ├── file-processing/
+│   ├── audio-processing/
+│   └── cross-platform/
+├── e2e/
+└── contract/
 
-# [REMOVE IF UNUSED] Option 3: Mobile + API (when "iOS/Android" detected)
-api/
-└── [same as backend above]
-
-ios/ or android/
-└── [platform-specific structure: feature modules, UI flows, platform tests]
+styles/
+└── tailwind.config.js
 ```
 
-**Structure Decision**: [Document the selected structure and reference the real
-directories captured above]
+**Structure Decision**: Single project structure using Tauri v2 + Vue 3 as detected from repository. The frontend lives in src/ directory with feature-specific components for file processing, data tools, and audio tools. The Tauri backend is in src-tauri/ with Rust code for file and audio processing. Testing is organized by type and feature in the tests/ directory. Components will prioritize PrimeVue components with custom extensions as needed and use Tailwind CSS for styling.
 
 ## Phase 0: Outline & Research
 1. **Extract unknowns from Technical Context** above:
@@ -194,25 +240,23 @@ directories captured above]
 
 | Violation | Why Needed | Simpler Alternative Rejected Because |
 |-----------|------------|-------------------------------------|
-| [e.g., 4th project] | [current need] | [why 3 projects insufficient] |
-| [e.g., Repository pattern] | [specific problem] | [why direct DB access insufficient] |
 
 
 ## Progress Tracking
 *This checklist is updated during execution flow*
 
 **Phase Status**:
-- [ ] Phase 0: Research complete (/plan command)
-- [ ] Phase 1: Design complete (/plan command)
-- [ ] Phase 2: Task planning complete (/plan command - describe approach only)
-- [ ] Phase 3: Tasks generated (/tasks command)
+- [x] Phase 0: Research complete (/plan command)
+- [x] Phase 1: Design complete (/plan command)
+- [x] Phase 2: Task planning complete (/plan command - describe approach only)
+- [x] Phase 3: Tasks generated (/tasks command)
 - [ ] Phase 4: Implementation complete
 - [ ] Phase 5: Validation passed
 
 **Gate Status**:
-- [ ] Initial Constitution Check: PASS
-- [ ] Post-Design Constitution Check: PASS
-- [ ] All NEEDS CLARIFICATION resolved
+- [x] Initial Constitution Check: PASS
+- [x] Post-Design Constitution Check: PASS
+- [x] All NEEDS CLARIFICATION resolved
 - [ ] Complexity deviations documented
 
 ---

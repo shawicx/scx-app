@@ -1,0 +1,107 @@
+# API Contract: File Processing Operations
+
+## Purpose
+Define the API contract for file processing operations (PDF to image conversion, markdown to PDF conversion)
+
+## Version
+1.0.0
+
+## Base URL
+`tauri://api` (for Tauri-bound operations)
+
+## Endpoints
+
+### POST /file/process/pdf-to-image
+**Description**: Convert PDF document to images with fix for large file processing
+**Request Body**:
+```json
+{
+  "inputPath": "string",
+  "outputDir": "string",
+  "options": {
+    "pageRange": {
+      "start": "number",
+      "end": "number"
+    },
+    "imageFormat": "png | jpeg",
+    "quality": "number (1-100)",
+    "resolution": "number (DPI)"
+  }
+}
+```
+
+**Response**:
+```json
+{
+  "jobId": "string",
+  "status": "completed | processing | failed",
+  "outputFiles": "Array<string>",
+  "progress": "number",
+  "error": "string | null"
+}
+```
+
+### POST /file/process/markdown-to-pdf
+**Description**: Convert Markdown document to PDF
+**Request Body**:
+```json
+{
+  "markdownContent": "string",
+  "outputPath": "string",
+  "options": {
+    "format": "A3 | A4 | A5 | A6 | B3 | B4 | B5 | B6 | Letter | Legal | Tabloid",
+    "orientation": "portrait | landscape",
+    "margins": {
+      "top": "number",
+      "bottom": "number", 
+      "left": "number",
+      "right": "number"
+    },
+    "header": "string",
+    "footer": "string"
+  }
+}
+```
+
+**Response**:
+```json
+{
+  "jobId": "string",
+  "status": "completed | processing | failed",
+  "outputPath": "string",
+  "progress": "number",
+  "error": "string | null"
+}
+```
+
+### GET /file/job/{jobId}
+**Description**: Get status of a file processing job
+**Response**:
+```json
+{
+  "jobId": "string",
+  "taskType": "string",
+  "status": "string",
+  "progress": "number",
+  "outputPath": "string",
+  "error": "string | null"
+}
+```
+
+## Error Responses
+All endpoints follow the standard error format:
+```json
+{
+  "error": {
+    "code": "string",
+    "message": "string",
+    "details": "object"
+  }
+}
+```
+
+## Security
+- All file system operations require proper Tauri permission configuration
+- Input file validation required to prevent malicious files
+- Output directory validation to prevent directory traversal
+- Memory usage monitoring to prevent DoS from large files
