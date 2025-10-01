@@ -1,4 +1,5 @@
 mod random;
+mod audio;
 
 // 引入具体的方法
 use random::{
@@ -10,6 +11,163 @@ use random::{
     generate_string,
     generate_strong_password,
 };
+
+// 引入音频处理模块
+use audio::processing::{
+    process_audio,
+    trim_audio,
+    convert_audio,
+    merge_audio,
+    adjust_volume,
+    get_audio_job_status,
+    AudioProcessingRequest,
+    AudioTrimRequest,
+    AudioConvertRequest,
+    AudioMergeRequest,
+    AudioVolumeAdjustRequest,
+    AudioJobStatusRequest,
+};
+
+use audio::metadata::{
+    extract_audio_metadata,
+    generate_waveform,
+    AudioMetadataRequest,
+    WaveformRequest,
+};
+
+// File processing structs
+#[derive(Serialize, Deserialize)]
+struct PdfToImageRequest {
+    input_path: String,
+    output_dir: String,
+    options: Option<serde_json::Value>,
+}
+
+#[derive(Serialize, Deserialize)]
+struct PdfToImageResponse {
+    job_id: String,
+    status: String,
+    output_files: Vec<String>,
+    progress: u8,
+    error: Option<String>,
+}
+
+#[derive(Serialize, Deserialize)]
+struct MarkdownToPdfRequest {
+    markdown_content: String,
+    output_path: String,
+    options: Option<serde_json::Value>,
+}
+
+#[derive(Serialize, Deserialize)]
+struct MarkdownToPdfResponse {
+    job_id: String,
+    status: String,
+    output_path: Option<String>,
+    progress: u8,
+    error: Option<String>,
+}
+
+#[derive(Serialize, Deserialize)]
+struct FileJobStatusRequest {
+    job_id: String,
+}
+
+#[derive(Serialize, Deserialize)]
+struct FileJobStatusResponse {
+    job_id: String,
+    task_type: String,
+    status: String,
+    progress: u8,
+    output_path: Option<String>,
+    error: Option<String>,
+}
+
+// Data processing structs
+#[derive(Serialize, Deserialize)]
+struct GenerateRandomDataRequest {
+    data_type: String,
+    count: u32,
+    options: Option<serde_json::Value>,
+}
+
+#[derive(Serialize, Deserialize)]
+struct GenerateRandomDataResponse {
+    data_type: String,
+    generated_data: Vec<String>,
+    copied_to_clipboard: bool,
+    timestamp: String,
+}
+
+#[derive(Serialize, Deserialize)]
+struct CopyToClipboardRequest {
+    data: String,
+}
+
+#[derive(Serialize, Deserialize)]
+struct CopyToClipboardResponse {
+    success: bool,
+    timestamp: String,
+}
+
+#[derive(Serialize, Deserialize)]
+struct ChinaRegionsRequest {
+    parent_id: Option<String>,
+    level: Option<u32>,
+    search: Option<String>,
+}
+
+#[derive(Serialize, Deserialize)]
+struct ChinaRegionsResponse {
+    regions: Vec<ChinaRegionInfo>,
+    loading: bool,
+    timestamp: String,
+}
+
+#[derive(Serialize, Deserialize)]
+struct ChinaRegionInfo {
+    region_id: String,
+    name: String,
+    region_type: String,
+    parent_id: Option<String>,
+    level: u32,
+    children: Vec<ChinaRegionInfo>,
+    additional_info: Option<serde_json::Value>,
+}
+
+#[derive(Serialize, Deserialize)]
+struct TextCompareRequest {
+    doc1: String,
+    doc2: String,
+    options: Option<serde_json::Value>,
+}
+
+#[derive(Serialize, Deserialize)]
+struct TextCompareResponse {
+    differences: Vec<TextDifference>,
+    similarity_percent: u32,
+    timestamp: String,
+}
+
+#[derive(Serialize, Deserialize)]
+struct TextDifference {
+    diff_type: String,
+    position: TextPosition,
+    content: TextContent,
+    similarity: f64,
+}
+
+#[derive(Serialize, Deserialize)]
+struct TextPosition {
+    doc1: usize,
+    doc2: usize,
+}
+
+#[derive(Serialize, Deserialize)]
+struct TextContent {
+    doc1: Option<String>,
+    doc2: Option<String>,
+}
 
 use tauri::command;
 use std::collections::HashMap;
@@ -174,7 +332,22 @@ pub fn run() {
             generate_date,
             generate_plan,
             get_project_structure,
-            execute_contract_test
+            execute_contract_test,
+            process_audio,
+            trim_audio,
+            convert_audio,
+            merge_audio,
+            adjust_volume,
+            get_audio_job_status,
+            extract_audio_metadata,
+            generate_waveform,
+            process_pdf_to_image,
+            process_markdown_to_pdf,
+            get_file_job_status,
+            generate_random_data,
+            copy_to_clipboard,
+            get_china_regions,
+            compare_texts
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

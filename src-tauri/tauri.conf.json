@@ -33,11 +33,23 @@
         "removeDir": true,
         "removeFile": true,
         "renameFile": true,
-        "exists": true
+        "exists": true,
+        "scope": ["**"]
       },
       "protocol": {
         "asset": true,
         "assetScope": ["**"]
+      },
+      "clipboard": {
+        "writeText": true,
+        "readText": true
+      },
+      "dialog": {
+        "open": true,
+        "save": true
+      },
+      "shell": {
+        "open": "^https://github.com/"
       }
     }
   },

@@ -3,6 +3,10 @@
 
 **Branch**: `002-pdf-bug-markdown` | **Date**: 2025-09-30 | **Spec**: [spec.md](spec.md)
 **Input**: Feature specification from `/specs/002-pdf-bug-markdown/spec.md`
+**Technical Context**: 
+- 前端：优先使用 primevue 中的组件，如果不合适则基于primevue的组件二次封装，样式使用 tailwindcss 实现，尽量少写 样式代码。
+- Rust：优先使用下载次数度的最新版本包，不是必要情况下不要降级包的版本。
+- 工程化：提交代码前需要校验，commit 信息需要校验。
 
 ## Execution Flow (/plan command scope)
 ```
@@ -35,14 +39,17 @@ Implement comprehensive desktop application functionality for file processing (P
 
 ## Technical Context
 **Language/Version**: JavaScript/TypeScript, Vue 3, Tauri 2.x, Rust 1.75+  
-**Primary Dependencies**: @tauri-apps/api, @tauri-apps/cli, vue, primevue, tailwindcss, pdfjs-dist, jszip, file-saver, wavesurfer.js  
+**Primary Dependencies**: @tauri-apps/api, @tauri-apps/cli, vue, primevue, tailwindcss, pdfjs-dist, jszip, file-saver, wavesurfer.js, hound, rodio, ffmpeg  
 **Storage**: Local file system via Tauri APIs, browser storage  
 **Testing**: vitest for unit tests, manual testing for cross-platform validation  
 **Target Platform**: Desktop applications for Windows, macOS, and Linux
 **Project Type**: Desktop application (single project using Tauri + Vue 3)  
-**Performance Goals**: Responsive UI with <200ms interaction response, efficient large file handling  
-**Constraints**: Tauri security model, cross-platform compatibility, native OS integration, memory limits for large file processing  
+**Performance Goals**: Responsive UI with <200ms interaction response, efficient large file handling, audio processing performance  
+**Constraints**: Tauri security model, cross-platform compatibility, native OS integration, memory limits for large file processing, audio processing resource usage  
 **Scale/Scope**: Single-user desktop application, file-based workflows, audio processing capabilities
+**Frontend**: PrimeVue components with TailwindCSS styling, minimal custom CSS  
+**Rust**: Latest stable versions of popular crates, no unnecessary downgrades  
+**Engineering**: Pre-commit validation, commit message validation
 
 ## Constitution Check
 *GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
@@ -250,14 +257,14 @@ styles/
 - [x] Phase 1: Design complete (/plan command)
 - [x] Phase 2: Task planning complete (/plan command - describe approach only)
 - [x] Phase 3: Tasks generated (/tasks command)
-- [ ] Phase 4: Implementation complete
+- [x] Phase 4: Implementation complete
 - [ ] Phase 5: Validation passed
 
 **Gate Status**:
 - [x] Initial Constitution Check: PASS
 - [x] Post-Design Constitution Check: PASS
 - [x] All NEEDS CLARIFICATION resolved
-- [ ] Complexity deviations documented
+- [x] Complexity deviations documented
 
 ---
 *Based on Constitution v1.1.0 - See `/memory/constitution.md`*
