@@ -1,0 +1,136 @@
+# API Contract: Data Processing Operations
+
+## Purpose
+Define the API contract for data processing operations (random data generation, Chinese region data, text comparison)
+
+## Version
+1.0.0
+
+## Base URL
+`tauri://api` (for Tauri-bound operations)
+
+## Endpoints
+
+### POST /data/generate/random
+**Description**: Generate random data of specified type with copy functionality
+**Request Body**:
+```json
+{
+  "dataType": "chinese-name | english-name | phone | id-card | string | strong-password | date",
+  "count": "number",
+  "options": {
+    "length": "number (for string generation)",
+    "format": "string (for date format)"
+  }
+}
+```
+
+**Response**:
+```json
+{
+  "dataType": "string",
+  "generatedData": "Array<string>",
+  "copiedToClipboard": "boolean",
+  "timestamp": "string"
+}
+```
+
+### POST /data/copy-to-clipboard
+**Description**: Copy generated data to system clipboard
+**Request Body**:
+```json
+{
+  "data": "string"
+}
+```
+
+**Response**:
+```json
+{
+  "success": "boolean",
+  "timestamp": "string"
+}
+```
+
+### GET /data/china-regions
+**Description**: Query Chinese administrative region data with loading indicators
+**Request Query Parameters**:
+```
+parentId? (string): ID of parent region to get children
+level? (number): Specific level to query
+search? (string): Search term for region names
+```
+
+**Response**:
+```json
+{
+  "regions": [
+    {
+      "regionId": "string",
+      "name": "string",
+      "type": "string",
+      "parentId": "string | null",
+      "level": "number",
+      "children": "Array<Region>",
+      "additionalInfo": "object"
+    }
+  ],
+  "loading": "boolean",
+  "timestamp": "string"
+}
+```
+
+### POST /data/text-compare
+**Description**: Compare two text documents and highlight differences
+**Request Body**:
+```json
+{
+  "doc1": "string",
+  "doc2": "string",
+  "options": {
+    "granularity": "word | line | paragraph",
+    "ignoreWhitespace": "boolean",
+    "ignoreCase": "boolean"
+  }
+}
+```
+
+**Response**:
+```json
+{
+  "differences": [
+    {
+      "type": "added | removed | modified",
+      "position": {
+        "doc1": "number",
+        "doc2": "number"
+      },
+      "content": {
+        "doc1": "string",
+        "doc2": "string"
+      },
+      "similarity": "number"
+    }
+  ],
+  "similarityPercent": "number",
+  "timestamp": "string"
+}
+```
+
+## Error Responses
+All endpoints follow the standard error format:
+```json
+{
+  "error": {
+    "code": "string",
+    "message": "string",
+    "details": "object"
+  }
+}
+```
+
+## Security
+- All data operations follow proper validation
+- Generated data validated against format requirements
+- Chinese region data access properly authenticated if needed
+- Text comparison results properly sanitized

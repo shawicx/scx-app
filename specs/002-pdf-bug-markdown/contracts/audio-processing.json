@@ -1,0 +1,232 @@
+# API Contract: Audio Processing Operations
+
+## Purpose
+Define the API contract for audio processing operations (recording, conversion, trimming, metadata)
+
+## Version
+1.0.0
+
+## Base URL
+`tauri://api` (for Tauri-bound operations)
+
+## Endpoints
+
+### POST /audio/record-to-text
+**Description**: Convert audio recording to text
+**Request Body**:
+```json
+{
+  "audioFilePath": "string",
+  "options": {
+    "language": "string (e.g., en-US, zh-CN)",
+    "punctuation": "boolean",
+    "profanityFilter": "boolean"
+  }
+}
+```
+
+**Response**:
+```json
+{
+  "jobId": "string",
+  "status": "completed | processing | failed",
+  "transcript": "string",
+  "progress": "number",
+  "error": "string | null"
+}
+```
+
+### POST /audio/trim
+**Description**: Trim audio file by selecting segments
+**Request Body**:
+```json
+{
+  "inputPath": "string",
+  "outputPath": "string",
+  "segments": [
+    {
+      "startTime": "number (seconds)",
+      "endTime": "number (seconds)"
+    }
+  ],
+  "options": {
+    "crossfade": "boolean",
+    "preserveOriginal": "boolean"
+  }
+}
+```
+
+**Response**:
+```json
+{
+  "jobId": "string",
+  "status": "completed | processing | failed",
+  "outputPath": "string",
+  "progress": "number",
+  "error": "string | null"
+}
+```
+
+### POST /audio/convert
+**Description**: Convert audio between different formats
+**Request Body**:
+```json
+{
+  "inputPath": "string",
+  "outputPath": "string",
+  "targetFormat": "mp3 | wav | flac | ogg",
+  "options": {
+    "bitrate": "number (kbps)",
+    "sampleRate": "number (hz)",
+    "channels": "number"
+  }
+}
+```
+
+**Response**:
+```json
+{
+  "jobId": "string",
+  "status": "completed | processing | failed",
+  "outputPath": "string",
+  "metadata": {
+    "format": "string",
+    "sampleRate": "number",
+    "bitRate": "number",
+    "duration": "number",
+    "channels": "number"
+  },
+  "progress": "number",
+  "error": "string | null"
+}
+```
+
+### POST /audio/merge
+**Description**: Merge multiple audio files in sequence
+**Request Body**:
+```json
+{
+  "inputPaths": "Array<string>",
+  "outputPath": "string",
+  "options": {
+    "alignSampleRates": "boolean",
+    "addCrossfades": "boolean",
+    "preserveOriginalOrder": "boolean"
+  }
+}
+```
+
+**Response**:
+```json
+{
+  "jobId": "string",
+  "status": "completed | processing | failed",
+  "outputPath": "string",
+  "mergedCount": "number",
+  "progress": "number",
+  "error": "string | null"
+}
+```
+
+### POST /audio/volume-adjust
+**Description**: Adjust volume with fade-in/fade-out effects
+**Request Body**:
+```json
+{
+  "inputPath": "string",
+  "outputPath": "string",
+  "options": {
+    "gain": "number (0.0-2.0, where 1.0 is no change)",
+    "fadeInDuration": "number (seconds)",
+    "fadeOutDuration": "number (seconds)"
+  }
+}
+```
+
+**Response**:
+```json
+{
+  "jobId": "string",
+  "status": "completed | processing | failed",
+  "outputPath": "string",
+  "progress": "number",
+  "error": "string | null"
+}
+```
+
+### POST /audio/metadata
+**Description**: Extract metadata from audio file
+**Request Body**:
+```json
+{
+  "inputPath": "string"
+}
+```
+
+**Response**:
+```json
+{
+  "fileId": "string",
+  "format": "string",
+  "sampleRate": "number",
+  "bitRate": "number",
+  "duration": "number",
+  "channels": "number",
+  "size": "number",
+  "additionalMetadata": "object"
+}
+```
+
+### GET /audio/waveform
+**Description**: Generate waveform data for visualization
+**Request Body**:
+```json
+{
+  "inputPath": "string",
+  "options": {
+    "peaksCount": "number (default: 2000)",
+    "channels": "number (default: 1)"
+  }
+}
+```
+
+**Response**:
+```json
+{
+  "waveform": "Array<number>",
+  "duration": "number",
+  "sampleRate": "number"
+}
+```
+
+### GET /audio/job/{jobId}
+**Description**: Get status of an audio processing job
+**Response**:
+```json
+{
+  "jobId": "string",
+  "taskType": "string",
+  "status": "string",
+  "progress": "number",
+  "outputPath": "string",
+  "error": "string | null"
+}
+```
+
+## Error Responses
+All endpoints follow the standard error format:
+```json
+{
+  "error": {
+    "code": "string",
+    "message": "string",
+    "details": "object"
+  }
+}
+```
+
+## Security
+- All file system operations require proper Tauri permission configuration
+- Audio file validation to prevent malicious processing
+- Memory management critical for large audio files
+- Process execution for ffmpeg operations properly sandboxed

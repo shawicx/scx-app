@@ -21,6 +21,38 @@
       "csp": null
     }
   },
+  "tauri": {
+    "allowlist": {
+      "fs": {
+        "all": true,
+        "readFile": true,
+        "writeFile": true,
+        "readDir": true,
+        "copyFile": true,
+        "createDir": true,
+        "removeDir": true,
+        "removeFile": true,
+        "renameFile": true,
+        "exists": true,
+        "scope": ["**"]
+      },
+      "protocol": {
+        "asset": true,
+        "assetScope": ["**"]
+      },
+      "clipboard": {
+        "writeText": true,
+        "readText": true
+      },
+      "dialog": {
+        "open": true,
+        "save": true
+      },
+      "shell": {
+        "open": "^https://github.com/"
+      }
+    }
+  },
   "bundle": {
     "active": true,
     "targets": "all",
