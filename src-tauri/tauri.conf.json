@@ -4,53 +4,31 @@
   "version": "0.1.0",
   "identifier": "com.scx-app.app",
   "build": {
-    "beforeDevCommand": "pnpm dev",
-    "devUrl": "http://localhost:1420",
-    "beforeBuildCommand": "pnpm build",
-    "frontendDist": "../dist"
+    "frontendDist": "../dist",
+    "devUrl": "http://localhost:1420"
   },
   "app": {
+    "security": {
+      "csp": null
+    },
     "windows": [
       {
         "title": "scx-app",
         "width": 800,
         "height": 600
       }
-    ],
-    "security": {
-      "csp": null
-    }
+    ]
   },
-  "tauri": {
-    "allowlist": {
-      "fs": {
-        "all": true,
-        "readFile": true,
-        "writeFile": true,
-        "readDir": true,
-        "copyFile": true,
-        "createDir": true,
-        "removeDir": true,
-        "removeFile": true,
-        "renameFile": true,
-        "exists": true,
-        "scope": ["**"]
-      },
-      "protocol": {
-        "asset": true,
-        "assetScope": ["**"]
-      },
-      "clipboard": {
-        "writeText": true,
-        "readText": true
-      },
-      "dialog": {
-        "open": true,
-        "save": true
-      },
-      "shell": {
-        "open": "^https://github.com/"
-      }
+  "plugins": {
+    "fs": {
+      "scope": [
+        "**"
+      ]
+    },
+    "protocol": {
+      "assetScope": [
+        "**"
+      ]
     }
   },
   "bundle": {
