@@ -1,14 +1,14 @@
 <script setup>
-import { ref } from "vue";
-import * as pdfjsLib from "pdfjs-dist";
-import { useToast } from "primevue/usetoast";
-import JSZip from "jszip";
-import FileSaver from "file-saver";
-import Lodaing from "^/components/Loading.vue";
+import { ref } from 'vue';
+import * as pdfjsLib from 'pdfjs-dist';
+import { useToast } from 'primevue/usetoast';
+import JSZip from 'jszip';
+import FileSaver from 'file-saver';
+import Lodaing from '@/components/Loading.vue';
 
 // 初始化 PDF.js worker
 pdfjsLib.GlobalWorkerOptions.workerSrc = new URL(
-  "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.8.69/pdf.worker.mjs",
+  'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.8.69/pdf.worker.mjs'
 ).toString();
 
 // 响应式状态定义
@@ -27,27 +27,27 @@ const status = ref(ConvertStatus.NotStarted);
 // 轮播图响应式配置
 const responsiveOptions = ref([
   {
-    breakpoint: "1400px",
+    breakpoint: '1400px',
     numVisible: 12,
     numScroll: 1,
   },
   {
-    breakpoint: "1200px",
+    breakpoint: '1200px',
     numVisible: 8,
     numScroll: 1,
   },
   {
-    breakpoint: "992px",
+    breakpoint: '992px',
     numVisible: 6,
     numScroll: 1,
   },
   {
-    breakpoint: "768px",
+    breakpoint: '768px',
     numVisible: 4,
     numScroll: 1,
   },
   {
-    breakpoint: "576px",
+    breakpoint: '576px',
     numVisible: 2,
     numScroll: 1,
   },
@@ -55,17 +55,17 @@ const responsiveOptions = ref([
 
 // 文件大小格式化函数
 const formatFileSize = (bytes) => {
-  if (bytes === 0) return "0 Bytes";
+  if (bytes === 0) return '0 Bytes';
   const k = 1024;
-  const sizes = ["Bytes", "KB", "MB", "GB"];
+  const sizes = ['Bytes', 'KB', 'MB', 'GB'];
   const i = Math.floor(Math.log(bytes) / Math.log(k));
-  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
 };
 
 // 文件选择处理
 const onFileChange = (event) => {
   const file = event.files?.[0];
-  if (file && file.type === "application/pdf") {
+  if (file && file.type === 'application/pdf') {
     fileInfo.value = {
       name: file.name,
       size: file.size,
@@ -74,9 +74,9 @@ const onFileChange = (event) => {
     status.value = ConvertStatus.NotStarted;
   } else {
     toast.add({
-      severity: "error",
-      summary: "错误",
-      detail: "请选择一个有效的 PDF 文件",
+      severity: 'error',
+      summary: '错误',
+      detail: '请选择一个有效的 PDF 文件',
       life: 3000,
     });
   }
@@ -86,7 +86,7 @@ const onFileChange = (event) => {
 const timeoutPromise = (timeout) => {
   return new Promise((_, reject) => {
     setTimeout(() => {
-      reject(new Error("转换超时，请检查文件大小或重试"));
+      reject(new Error('转换超时，请检查文件大小或重试'));
     }, timeout);
   });
 };
@@ -109,8 +109,8 @@ const convertPdfToPng = async () => {
         for (let pageNum = 1; pageNum <= totalPages; pageNum++) {
           const page = await pdf.getPage(pageNum);
           const viewport = page.getViewport({ scale: 1.5 });
-          const canvas = document.createElement("canvas");
-          const context = canvas.getContext("2d");
+          const canvas = document.createElement('canvas');
+          const context = canvas.getContext('2d');
           canvas.height = viewport.height;
           canvas.width = viewport.width;
 
@@ -119,7 +119,7 @@ const convertPdfToPng = async () => {
             viewport,
           }).promise;
 
-          const imageUrl = canvas.toDataURL("image/png");
+          const imageUrl = canvas.toDataURL('image/png');
           images.value.push({
             itemImageSrc: imageUrl,
             alt: `第 ${pageNum} 页`,
@@ -132,17 +132,17 @@ const convertPdfToPng = async () => {
 
     status.value = ConvertStatus.Success;
     toast.add({
-      severity: "success",
-      summary: "转换成功",
+      severity: 'success',
+      summary: '转换成功',
       detail: `成功转换 ${images.value.length} 页PDF`,
       life: 3000,
     });
   } catch (error) {
     status.value = ConvertStatus.Failed;
     toast.add({
-      severity: "error",
-      summary: "转换失败",
-      detail: error.message || "转换过程中发生错误",
+      severity: 'error',
+      summary: '转换失败',
+      detail: error.message || '转换过程中发生错误',
       life: 5000,
     });
   }
@@ -154,12 +154,12 @@ const downloadImages = async () => {
 
   try {
     const baseFileName = fileInfo.value
-      ? fileInfo.value.name.replace(/\.pdf$/i, "")
-      : "pdf";
+      ? fileInfo.value.name.replace(/\.pdf$/i, '')
+      : 'pdf';
 
     if (images.value.length <= 5) {
       images.value.forEach((image, index) => {
-        const link = document.createElement("a");
+        const link = document.createElement('a');
         link.href = image.itemImageSrc;
         link.download = `${baseFileName}_${index + 1}.png`;
         document.body.appendChild(link);
@@ -177,21 +177,21 @@ const downloadImages = async () => {
       });
 
       await Promise.all(promises);
-      const content = await zip.generateAsync({ type: "blob" });
+      const content = await zip.generateAsync({ type: 'blob' });
       FileSaver.saveAs(content, `${baseFileName}_images.zip`);
     }
 
     toast.add({
-      severity: "success",
-      summary: "下载成功",
-      detail: "图片已成功下载",
+      severity: 'success',
+      summary: '下载成功',
+      detail: '图片已成功下载',
       life: 3000,
     });
   } catch (error) {
     toast.add({
-      severity: "error",
-      summary: "下载失败",
-      detail: "图片下载过程中发生错误",
+      severity: 'error',
+      summary: '下载失败',
+      detail: '图片下载过程中发生错误',
       life: 5000,
     });
   }

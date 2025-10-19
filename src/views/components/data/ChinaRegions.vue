@@ -1,17 +1,17 @@
 <script setup>
-import { onMounted, ref } from "vue";
-import axios from "axios";
-import { useToast } from "primevue/usetoast";
-import Loading from "^/components/Loading.vue";
+import { onMounted, ref } from 'vue';
+import axios from 'axios';
+import { useToast } from 'primevue/usetoast';
+import Loading from '@/components/Loading.vue';
 
 // 数据源URL
-const SourceUrl = "https://geo.datav.aliyun.com/areas_v3/bound";
+const SourceUrl = 'https://geo.datav.aliyun.com/areas_v3/bound';
 
 // 各级别的映射
 const LevelMap = {
-  Province: "province",
-  City: "city",
-  County: "county",
+  Province: 'province',
+  City: 'city',
+  County: 'county',
 };
 
 const toast = useToast();
@@ -31,28 +31,28 @@ const downloadAllCurrentLevelData = async () => {
   try {
     if (activeTab.value === LevelMap.City) {
       const response = await axios.get(
-        `${SourceUrl}/${selectedProvince.value.code}_full.json`,
+        `${SourceUrl}/${selectedProvince.value.code}_full.json`
       );
       url = window.URL.createObjectURL(
-        new Blob([JSON.stringify(response.data)], { type: "application/json" }),
+        new Blob([JSON.stringify(response.data)], { type: 'application/json' })
       );
       filename = `${selectedProvince.value.name}_所有城市边界数据.json`;
     } else if (activeTab.value === LevelMap.County) {
       const response = await axios.get(
-        `${SourceUrl}/${selectedCity.value.code}_full.json`,
+        `${SourceUrl}/${selectedCity.value.code}_full.json`
       );
       url = window.URL.createObjectURL(
-        new Blob([JSON.stringify(response.data)], { type: "application/json" }),
+        new Blob([JSON.stringify(response.data)], { type: 'application/json' })
       );
       filename = `${selectedCity.value.name}_所有区县边界数据.json`;
     } else if (activeTab.value === LevelMap.Province) {
       const response = await axios.get(`${SourceUrl}/100000_full.json`);
       url = window.URL.createObjectURL(
-        new Blob([JSON.stringify(response.data)], { type: "application/json" }),
+        new Blob([JSON.stringify(response.data)], { type: 'application/json' })
       );
       filename = `中国_所有省份边界数据.json`;
     }
-    const link = document.createElement("a");
+    const link = document.createElement('a');
     link.href = url;
     link.download = filename;
     document.body.appendChild(link);
@@ -60,17 +60,17 @@ const downloadAllCurrentLevelData = async () => {
     document.body.removeChild(link);
     window.URL.revokeObjectURL(url);
     toast.add({
-      severity: "success",
-      summary: "成功",
+      severity: 'success',
+      summary: '成功',
       detail: `${filename}下载成功`,
       life: 3000,
     });
   } catch (error) {
-    console.error("Download all current level data error:", error);
+    console.error('Download all current level data error:', error);
     toast.add({
-      severity: "error",
-      summary: "错误",
-      detail: "下载数据失败",
+      severity: 'error',
+      summary: '错误',
+      detail: '下载数据失败',
       life: 3000,
     });
   }
@@ -82,14 +82,14 @@ const loadProvinces = async () => {
   try {
     const response = await axios.get(`${SourceUrl}/100000_full.json`);
     if (!response.data || !response.data.features) {
-      throw new Error("Invalid data structure");
+      throw new Error('Invalid data structure');
     }
     provinces.value = response.data.features
       .filter((feature) => {
         if (!feature || !feature.properties || !feature.properties.adcode)
           return false;
         const adcode = String(feature.properties.adcode);
-        return !adcode.includes("_JD");
+        return !adcode.includes('_JD');
       })
       .map((feature) => ({
         name: feature.properties.name || `区域${feature.properties.adcode}`,
@@ -97,11 +97,11 @@ const loadProvinces = async () => {
         level: LevelMap.Province,
       }));
   } catch (error) {
-    console.error("Load provinces error:", error);
+    console.error('Load provinces error:', error);
     toast.add({
-      severity: "error",
-      summary: "错误",
-      detail: "加载省份数据失败",
+      severity: 'error',
+      summary: '错误',
+      detail: '加载省份数据失败',
       life: 3000,
     });
   } finally {
@@ -141,16 +141,16 @@ const handleProvinceChange = async () => {
   citiesLoading.value = true;
   try {
     const response = await axios.get(
-      `${SourceUrl}/${selectedProvince.value.code}_full.json`,
+      `${SourceUrl}/${selectedProvince.value.code}_full.json`
     );
     if (!response.data || !response.data.features) {
-      throw new Error("Invalid data structure");
+      throw new Error('Invalid data structure');
     }
     cities.value = response.data.features
       .filter((feature) => {
         if (!feature.properties || !feature.properties.adcode) return false;
         const adcode = String(feature.properties.adcode);
-        return !adcode.includes("_JD");
+        return !adcode.includes('_JD');
       })
       .map((feature) => ({
         name: feature.properties.name || `区域${feature.properties.adcode}`,
@@ -158,11 +158,11 @@ const handleProvinceChange = async () => {
         level: LevelMap.City,
       }));
   } catch (error) {
-    console.error("Load cities error:", error);
+    console.error('Load cities error:', error);
     toast.add({
-      severity: "error",
-      summary: "错误",
-      detail: "加载城市数据失败",
+      severity: 'error',
+      summary: '错误',
+      detail: '加载城市数据失败',
       life: 3000,
     });
   } finally {
@@ -177,16 +177,16 @@ const handleCityChange = async () => {
   countiesLoading.value = true;
   try {
     const response = await axios.get(
-      `${SourceUrl}/${selectedCity.value.code}_full.json`,
+      `${SourceUrl}/${selectedCity.value.code}_full.json`
     );
     if (!response.data || !response.data.features) {
-      throw new Error("Invalid data structure");
+      throw new Error('Invalid data structure');
     }
     counties.value = response.data.features
       .filter((feature) => {
         if (!feature.properties || !feature.properties.adcode) return false;
         const adcode = String(feature.properties.adcode);
-        return !adcode.includes("_JD");
+        return !adcode.includes('_JD');
       })
       .map((feature) => ({
         name: feature.properties.name || `区域${feature.properties.adcode}`,
@@ -194,11 +194,11 @@ const handleCityChange = async () => {
         level: LevelMap.County,
       }));
   } catch (error) {
-    console.error("Load counties error:", error);
+    console.error('Load counties error:', error);
     toast.add({
-      severity: "error",
-      summary: "错误",
-      detail: "加载区县数据失败",
+      severity: 'error',
+      summary: '错误',
+      detail: '加载区县数据失败',
       life: 3000,
     });
   } finally {
@@ -211,10 +211,10 @@ const downloadRegionData = async (region) => {
   try {
     const response = await axios.get(`${SourceUrl}/${region.code}.json`);
     const blob = new Blob([JSON.stringify(response.data)], {
-      type: "application/json",
+      type: 'application/json',
     });
     const url = window.URL.createObjectURL(blob);
-    const link = document.createElement("a");
+    const link = document.createElement('a');
     link.href = url;
     link.download = `${region.name}_boundary.json`;
     document.body.appendChild(link);
@@ -222,17 +222,17 @@ const downloadRegionData = async (region) => {
     document.body.removeChild(link);
     window.URL.revokeObjectURL(url);
     toast.add({
-      severity: "success",
-      summary: "成功",
+      severity: 'success',
+      summary: '成功',
       detail: `${region.name}边界数据下载成功`,
       life: 3000,
     });
   } catch (error) {
-    console.error("Download region data error:", error);
+    console.error('Download region data error:', error);
     toast.add({
-      severity: "error",
-      summary: "错误",
-      detail: "下载边界数据失败",
+      severity: 'error',
+      summary: '错误',
+      detail: '下载边界数据失败',
       life: 3000,
     });
   }
