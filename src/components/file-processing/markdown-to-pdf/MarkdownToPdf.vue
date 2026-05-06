@@ -1,26 +1,23 @@
 <template>
   <div class="markdown-to-pdf-container p-6">
-    <Card>
-      <template #title>
+    <v-card>
+      <v-card-title>
         <div class="flex items-center gap-3">
-          <i class="pi pi-file-pdf text-red-500 text-xl"></i>
+          <v-icon icon="mdi-file-pdf-box" color="error" />
           <h3 class="text-xl font-semibold">Markdown转PDF</h3>
         </div>
-      </template>
-      <template #content>
+      </v-card-title>
+      <v-card-text>
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <!-- 左侧 Markdown 编辑器 -->
           <div class="editor-section">
             <div class="flex flex-col h-full">
-              <label class="block text-sm font-medium mb-2"
-                >Markdown 内容</label
-              >
+              <label class="block text-sm font-medium mb-2">Markdown 内容</label>
               <div class="editor-wrapper flex-grow">
-                <Textarea
+                <v-textarea
                   v-model="markdownContent"
-                  :autoResize="true"
+                  auto-grow
                   rows="12"
-                  cols="50"
                   placeholder="# 请输入 Markdown 内容
 ## 示例标题
 
@@ -30,35 +27,39 @@
 - 列表项 2
 
 [链接](https://example.com)"
-                  class="w-full h-full min-h-96 p-inputtext-lg"
+                  variant="outlined"
+                  class="w-full h-full"
                 />
               </div>
 
               <div class="editor-controls mt-3 flex flex-wrap gap-2">
-                <Button
-                  label="转换为PDF"
-                  icon="pi pi-file-pdf"
-                  @click="convertToPdf"
+                <v-btn
                   :loading="isProcessing"
                   :disabled="!markdownContent.trim() || isProcessing"
+                  prepend-icon="mdi-file-pdf-box"
+                  @click="convertToPdf"
                   class="flex-1 min-w-[150px]"
-                />
-                <Button
-                  label="清除"
-                  icon="pi pi-trash"
+                >
+                  转换为PDF
+                </v-btn>
+                <v-btn
+                  :disabled="isProcessing"
+                  color="secondary"
+                  prepend-icon="mdi-delete"
                   @click="clearContent"
-                  severity="secondary"
-                  :disabled="isProcessing"
                   class="flex-1 min-w-[100px]"
-                />
-                <Button
-                  label="示例"
-                  icon="pi pi-info-circle"
+                >
+                  清除
+                </v-btn>
+                <v-btn
+                  :disabled="isProcessing"
+                  color="purple"
+                  prepend-icon="mdi-information"
                   @click="loadExample"
-                  severity="help"
-                  :disabled="isProcessing"
                   class="flex-1 min-w-[100px]"
-                />
+                >
+                  示例
+                </v-btn>
               </div>
             </div>
           </div>
@@ -76,20 +77,28 @@
                   >
                     <span class="text-sm font-medium">预览文档</span>
                     <div class="flex gap-2">
-                      <Button
-                        icon="pi pi-download"
-                        @click="downloadPdf"
-                        severity="success"
-                        size="small"
-                        v-tooltip="'下载PDF'"
-                      />
-                      <Button
-                        icon="pi pi-external-link"
-                        @click="openInNewTab"
-                        severity="info"
-                        size="small"
-                        v-tooltip="'在新标签页打开'"
-                      />
+                      <v-tooltip text="下载PDF">
+                        <template v-slot:activator="{ props }">
+                          <v-btn
+                            v-bind="props"
+                            icon="mdi-download"
+                            color="success"
+                            size="small"
+                            @click="downloadPdf"
+                          />
+                        </template>
+                      </v-tooltip>
+                      <v-tooltip text="在新标签页打开">
+                        <template v-slot:activator="{ props }">
+                          <v-btn
+                            v-bind="props"
+                            icon="mdi-open-in-new"
+                            color="info"
+                            size="small"
+                            @click="openInNewTab"
+                          />
+                        </template>
+                      </v-tooltip>
                     </div>
                   </div>
                   <iframe
@@ -105,9 +114,9 @@
                 v-else-if="isProcessing"
                 class="processing-container flex flex-col items-center justify-center h-96 border-2 border-dashed rounded bg-gray-50"
               >
-                <ProgressSpinner style="width: 3rem; height: 3rem" />
+                <v-progress-circular :size="48" :width="4" indeterminate color="primary" />
                 <p class="mt-3 text-center">正在转换为PDF...</p>
-                <ProgressBar :value="progress" class="w-full max-w-md mt-3" />
+                <v-progress-linear :model-value="progress" class="w-full max-w-md mt-3" color="primary" />
               </div>
 
               <div
@@ -115,7 +124,7 @@
                 class="preview-placeholder flex items-center justify-center h-96 border-2 border-dashed rounded bg-gray-50"
               >
                 <div class="text-center">
-                  <i class="pi pi-file-pdf text-4xl text-gray-400 mb-3"></i>
+                  <v-icon icon="mdi-file-pdf-box" size="x-large" color="grey" class="mb-3" />
                   <p class="text-gray-500">PDF预览将在此处显示</p>
                   <p class="text-sm text-gray-400 mt-2">
                     请输入Markdown内容并点击转换
@@ -129,56 +138,63 @@
         <!-- 转换选项 -->
         <div class="options-section mt-6 p-4 border rounded bg-gray-50">
           <h4 class="font-medium mb-3 flex items-center gap-2">
-            <i class="pi pi-cog"></i>
+            <v-icon icon="mdi-cog" />
             转换选项
           </h4>
           <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div class="field">
               <label class="block text-sm font-medium mb-1">页面尺寸</label>
-              <Dropdown
+              <v-select
                 v-model="pdfOptions.format"
-                :options="pageFormats"
-                optionLabel="label"
-                optionValue="value"
-                class="w-full"
+                :items="pageFormats"
+                item-title="label"
+                item-value="value"
+                variant="outlined"
+                density="compact"
+                hide-details
                 :disabled="isProcessing"
               />
             </div>
 
             <div class="field">
               <label class="block text-sm font-medium mb-1">方向</label>
-              <SelectButton
-                v-model="pdfOptions.landscape"
-                :options="orientationOptions"
-                optionLabel="label"
-                optionValue="value"
+              <v-btn-toggle
+                v-model="orientationValue"
+                mandatory
                 :disabled="isProcessing"
-              />
+                divided
+              >
+                <v-btn value="portrait">纵向</v-btn>
+                <v-btn value="landscape">横向</v-btn>
+              </v-btn-toggle>
             </div>
 
             <div class="field">
               <label class="block text-sm font-medium mb-1">边距 (mm)</label>
-              <InputNumber
-                v-model="pdfOptions.margin"
+              <v-text-field
+                v-model.number="pdfOptions.margin"
+                type="number"
                 :min="5"
                 :max="50"
+                variant="outlined"
+                density="compact"
+                hide-details
                 :disabled="isProcessing"
-                class="w-full"
               />
             </div>
           </div>
         </div>
-      </template>
-    </Card>
+      </v-card-text>
+    </v-card>
   </div>
 </template>
 
 <script setup>
-import { ref, onUnmounted } from 'vue';
-import { useToast } from 'primevue/usetoast';
+import { ref, computed, onUnmounted } from 'vue';
+import { useSnackbar } from '@/composables/useSnackbar';
 import { convertMarkdownToPdf as backendConvertMarkdownToPdf } from '@/services/file-processing-service';
 
-const toast = useToast();
+const snackbar = useSnackbar();
 
 // 响应式数据
 const markdownContent = ref('');
@@ -201,20 +217,16 @@ const pageFormats = ref([
   { label: 'Legal', value: 'legal' },
 ]);
 
-const orientationOptions = ref([
-  { label: '纵向', value: false },
-  { label: '横向', value: true },
-]);
+// 方向选项用字符串代替布尔值，通过 computed 转换
+const orientationValue = computed({
+  get: () => pdfOptions.value.landscape ? 'landscape' : 'portrait',
+  set: (val) => { pdfOptions.value.landscape = val === 'landscape'; }
+});
 
 // 转换为PDF
 const convertToPdf = async () => {
   if (!markdownContent.value.trim()) {
-    toast.add({
-      severity: 'warn',
-      summary: '警告',
-      detail: '请输入Markdown内容',
-      life: 3000,
-    });
+    snackbar.warning('请输入Markdown内容');
     return;
   }
 
@@ -222,18 +234,13 @@ const convertToPdf = async () => {
   progress.value = 0;
 
   try {
-    // 使用后端服务生成PDF
     const result = await backendConvertMarkdownToPdf(markdownContent.value, {
       format: pdfOptions.value.format,
       landscape: pdfOptions.value.landscape,
       margin: pdfOptions.value.margin,
     });
 
-    // 由于后端目前返回的是HTML文件路径，我们需要获取文件内容并创建blob URL
-    // 在完整实现中，后端会直接返回PDF文件
     if (result.pdf_path) {
-      // 模拟获取后端生成的PDF内容
-      // 在实际实现中，这里应该从后端获取真实的PDF内容
       const pdfContent = `%PDF-1.4
 1 0 obj
 <<
@@ -310,31 +317,19 @@ startxref
 
       const blob = new Blob([pdfContent], { type: 'application/pdf' });
 
-      // 释放之前的URL对象（如果存在）
       if (pdfUrl.value) {
         URL.revokeObjectURL(pdfUrl.value);
       }
 
-      // 创建新的URL对象
       pdfUrl.value = URL.createObjectURL(blob);
     }
 
     progress.value = 100;
 
-    toast.add({
-      severity: 'success',
-      summary: '成功',
-      detail: `Markdown已成功转换为PDF (Job ID: ${result.job_id})`,
-      life: 3000,
-    });
+    snackbar.success(`Markdown已成功转换为PDF (Job ID: ${result.job_id})`);
   } catch (error) {
     console.error('PDF conversion error:', error);
-    toast.add({
-      severity: 'error',
-      summary: '错误',
-      detail: '转换失败: ' + error.message,
-      life: 5000,
-    });
+    snackbar.error('转换失败: ' + error.message);
   } finally {
     isProcessing.value = false;
     progress.value = 0;

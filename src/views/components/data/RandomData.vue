@@ -54,13 +54,13 @@ async function generateDate(withTime) {
       <h3>姓名生成</h3>
       <div class="generator-item">
         <span class="label">中文姓名：</span>
-        <InputText v-model="results.chineseName" readonly />
-        <Button @click="generateChineseName">生成</Button>
+        <v-text-field v-model="results.chineseName" readonly variant="outlined" density="compact" hide-details />
+        <v-btn @click="generateChineseName">生成</v-btn>
       </div>
       <div class="generator-item">
         <span class="label">英文姓名：</span>
-        <InputText v-model="results.englishName" readonly />
-        <Button @click="generateEnglishName">生成</Button>
+        <v-text-field v-model="results.englishName" readonly variant="outlined" density="compact" hide-details />
+        <v-btn @click="generateEnglishName">生成</v-btn>
       </div>
     </div>
 
@@ -68,13 +68,13 @@ async function generateDate(withTime) {
       <h3>证件号码</h3>
       <div class="generator-item">
         <span class="label">手机号：</span>
-        <InputText type="text" v-model="results.phone" readonly />
-        <Button @click="generatePhone">生成</Button>
+        <v-text-field v-model="results.phone" readonly variant="outlined" density="compact" hide-details />
+        <v-btn @click="generatePhone">生成</v-btn>
       </div>
       <div class="generator-item">
         <span class="label">身份证：</span>
-        <InputText type="text" v-model="results.idCard" readonly />
-        <Button @click="generateIdCard">生成</Button>
+        <v-text-field v-model="results.idCard" readonly variant="outlined" density="compact" hide-details />
+        <v-btn @click="generateIdCard">生成</v-btn>
       </div>
     </div>
 
@@ -82,18 +82,21 @@ async function generateDate(withTime) {
       <h3>随机字符串</h3>
       <div class="generator-item">
         <span class="label">长度：</span>
-        <Dropdown
+        <v-select
           v-model="stringLength"
-          :options="['8', '16', '32']"
-          class="w-8rem"
+          :items="['8', '16', '32']"
+          variant="outlined"
+          density="compact"
+          hide-details
+          style="max-width: 8rem"
         />
-        <InputText v-model="results.randomString" readonly />
-        <Button @click="generateRandomString">生成</Button>
+        <v-text-field v-model="results.randomString" readonly variant="outlined" density="compact" hide-details />
+        <v-btn @click="generateRandomString">生成</v-btn>
       </div>
       <div class="generator-item">
         <span class="label">强密码：</span>
-        <InputText v-model="results.password" readonly />
-        <Button @click="generateStrongPassword">生成</Button>
+        <v-text-field v-model="results.password" readonly variant="outlined" density="compact" hide-details />
+        <v-btn @click="generateStrongPassword">生成</v-btn>
       </div>
     </div>
 
@@ -101,9 +104,9 @@ async function generateDate(withTime) {
       <h3>日期时间</h3>
       <div class="generator-item">
         <span class="label">日期：</span>
-        <InputText v-model="results.date" readonly />
-        <Button class="mr-2" @click="generateDate(false)">生成日期</Button>
-        <Button @click="generateDate(true)">生成日期时间</Button>
+        <v-text-field v-model="results.date" readonly variant="outlined" density="compact" hide-details />
+        <v-btn class="mr-2" @click="generateDate(false)">生成日期</v-btn>
+        <v-btn @click="generateDate(true)">生成日期时间</v-btn>
       </div>
     </div>
   </div>
@@ -129,10 +132,6 @@ async function generateDate(withTime) {
 
     .label {
       min-width: 5rem;
-    }
-
-    .p-inputtext {
-      flex: 1;
     }
   }
 }

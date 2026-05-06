@@ -1,14 +1,15 @@
 <script setup>
 import { ref } from 'vue';
 import * as pdfjsLib from 'pdfjs-dist';
-import { useToast } from 'primevue/usetoast';
+import { useSnackbar } from '@/composables/useSnackbar';
 import JSZip from 'jszip';
 import FileSaver from 'file-saver';
-import Lodaing from '@/components/Loading.vue';
+import Loading from '@/components/Loading.vue';
+import ImagePreview from '@/components/ImagePreview.vue';
 
 // 初始化 PDF.js worker
 pdfjsLib.GlobalWorkerOptions.workerSrc = new URL(
-  'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.8.69/pdf.worker.mjs'
+  'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.10.38/pdf.worker.mjs'
 ).toString();
 
 // 响应式状态定义
@@ -19,39 +20,13 @@ const ConvertStatus = {
   Failed: 3,
 };
 
-const toast = useToast();
+const snackbar = useSnackbar();
 const fileInfo = ref(null);
 const images = ref([]);
 const status = ref(ConvertStatus.NotStarted);
-
-// 轮播图响应式配置
-const responsiveOptions = ref([
-  {
-    breakpoint: '1400px',
-    numVisible: 12,
-    numScroll: 1,
-  },
-  {
-    breakpoint: '1200px',
-    numVisible: 8,
-    numScroll: 1,
-  },
-  {
-    breakpoint: '992px',
-    numVisible: 6,
-    numScroll: 1,
-  },
-  {
-    breakpoint: '768px',
-    numVisible: 4,
-    numScroll: 1,
-  },
-  {
-    breakpoint: '576px',
-    numVisible: 2,
-    numScroll: 1,
-  },
-]);
+const selectedFile = ref(null);
+const previewDialog = ref(false);
+const previewIndex = ref(0);
 
 // 文件大小格式化函数
 const formatFileSize = (bytes) => {
@@ -59,12 +34,11 @@ const formatFileSize = (bytes) => {
   const k = 1024;
   const sizes = ['Bytes', 'KB', 'MB', 'GB'];
   const i = Math.floor(Math.log(bytes) / Math.log(k));
-  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+  return parseFloat((bytes / k ** i).toFixed(2)) + ' ' + sizes[i];
 };
 
 // 文件选择处理
-const onFileChange = (event) => {
-  const file = event.files?.[0];
+const onFileChange = (file) => {
   if (file && file.type === 'application/pdf') {
     fileInfo.value = {
       name: file.name,
@@ -72,13 +46,9 @@ const onFileChange = (event) => {
       file: file,
     };
     status.value = ConvertStatus.NotStarted;
-  } else {
-    toast.add({
-      severity: 'error',
-      summary: '错误',
-      detail: '请选择一个有效的 PDF 文件',
-      life: 3000,
-    });
+  } else if (file) {
+    snackbar.error('请选择一个有效的 PDF 文件');
+    selectedFile.value = null;
   }
 };
 
@@ -131,20 +101,10 @@ const convertPdfToPng = async () => {
     ]);
 
     status.value = ConvertStatus.Success;
-    toast.add({
-      severity: 'success',
-      summary: '转换成功',
-      detail: `成功转换 ${images.value.length} 页PDF`,
-      life: 3000,
-    });
+    snackbar.success(`成功转换 ${images.value.length} 页PDF`);
   } catch (error) {
     status.value = ConvertStatus.Failed;
-    toast.add({
-      severity: 'error',
-      summary: '转换失败',
-      detail: error.message || '转换过程中发生错误',
-      life: 5000,
-    });
+    snackbar.error(error.message || '转换过程中发生错误');
   }
 };
 
@@ -181,26 +141,21 @@ const downloadImages = async () => {
       FileSaver.saveAs(content, `${baseFileName}_images.zip`);
     }
 
-    toast.add({
-      severity: 'success',
-      summary: '下载成功',
-      detail: '图片已成功下载',
-      life: 3000,
-    });
+    snackbar.success('图片已成功下载');
   } catch (error) {
-    toast.add({
-      severity: 'error',
-      summary: '下载失败',
-      detail: '图片下载过程中发生错误',
-      life: 5000,
-    });
+    snackbar.error('图片下载过程中发生错误');
   }
+};
+
+// 打开图片预览
+const openPreview = (index) => {
+  previewIndex.value = index;
+  previewDialog.value = true;
 };
 </script>
 
 <template>
   <div class="pdf-to-png-container">
-    <Toast />
     <Loading
       :visible="status === ConvertStatus.Processing"
       text="正在转换文件..."
@@ -210,29 +165,26 @@ const downloadImages = async () => {
       <div class="top-section">
         <!-- 左列 -->
         <div class="column">
-          <FileUpload
-            ref="fileupload"
-            :auto="true"
-            :maxFileSize="2589600000"
-            :showCancelButton="false"
-            :showUploadButton="false"
-            accept="application/pdf"
-            chooseLabel="选择PDF文件"
-            mode="basic"
-            name="pdfToPng"
-            @select="onFileChange"
-            @upload="onUpload"
+          <v-file-input
+            v-model="selectedFile"
+            label="选择PDF文件"
+            accept=".pdf"
+            variant="outlined"
+            prepend-icon="mdi-file-pdf-box"
+            width="15rem"
+            :show-size="true"
+            @update:model-value="onFileChange"
           />
 
           <!-- 文件信息展示 -->
           <div v-if="fileInfo" class="file-info">
             <div class="info-item">
-              <i class="pi pi-file-pdf" />
+              <v-icon icon="mdi-file-pdf-box" />
               <span class="label">文件名称:</span>
               <span class="value">{{ fileInfo.name }}</span>
             </div>
             <div class="info-item">
-              <i class="pi pi-database" />
+              <v-icon icon="mdi-database" />
               <span class="label">文件大小:</span>
               <span class="value">{{ formatFileSize(fileInfo.size) }}</span>
             </div>
@@ -242,25 +194,27 @@ const downloadImages = async () => {
         <!-- 右列 -->
         <div class="column">
           <div class="button-container">
-            <Button
+            <v-btn
               :disabled="
                 status === ConvertStatus.Processing ||
                 !fileInfo ||
                 status === ConvertStatus.Success
               "
-              icon="pi pi-images"
-              label="开始转换"
+              prepend-icon="mdi-image-multiple"
               @click="convertPdfToPng"
-            />
-            <Button
+            >
+              开始转换
+            </v-btn>
+            <v-btn
               :disabled="
                 status !== ConvertStatus.Success ||
                 status === ConvertStatus.Processing
               "
-              icon="pi pi-download"
-              label="下载图片"
+              prepend-icon="mdi-download"
               @click="downloadImages"
-            />
+            >
+              下载图片
+            </v-btn>
           </div>
         </div>
       </div>
@@ -269,38 +223,36 @@ const downloadImages = async () => {
       <div class="preview-section">
         <!-- 未开始转换或无内容状态 -->
         <div v-if="!images.length" class="preview-state empty">
-          <i class="pi pi-image"></i>
+          <v-icon icon="mdi-image" size="x-large" />
           <span>暂无预览内容</span>
         </div>
 
         <!-- 转换结果展示 -->
-        <div v-else class="preview-state">
-          <Carousel
-            :circular="true"
-            :numScroll="1"
-            :numVisible="8"
-            :responsiveOptions="responsiveOptions"
-            :showIndicators="false"
-            :value="images"
-            class="custom-carousel"
+        <div v-else class="image-grid">
+          <div
+            v-for="(image, index) in images"
+            :key="index"
+            class="image-item"
+            @click="openPreview(index)"
           >
-            <template #item="slotProps">
-              <div class="carousel-item">
-                <Image
-                  :alt="slotProps.data.alt"
-                  :src="slotProps.data.itemImageSrc"
-                  imageClass="carousel-image"
-                  preview
-                />
-                <div class="carousel-item-content">
-                  <span>{{ slotProps.data.title }}</span>
-                </div>
-              </div>
-            </template>
-          </Carousel>
+            <v-img
+              width="200px"
+              height="280px"
+              :src="image.itemImageSrc"
+              :alt="image.alt"
+            />
+            <span class="image-title">{{ image.title }}</span>
+          </div>
         </div>
       </div>
     </div>
+
+    <!-- 图片预览弹窗 -->
+    <ImagePreview
+      v-model="previewDialog"
+      :images="images"
+      :initial-index="previewIndex"
+    />
   </div>
 </template>
 
@@ -365,11 +317,6 @@ const downloadImages = async () => {
           margin: 0.5rem 0;
           gap: 0.5rem;
 
-          i {
-            color: #666;
-            font-size: 1.2rem;
-          }
-
           .label {
             color: #666;
             min-width: 80px;
@@ -405,21 +352,43 @@ const downloadImages = async () => {
         justify-content: center;
         align-items: center;
 
-        &.loading {
-          gap: 1rem;
-
-          .loading-text {
-            color: #666;
-            font-size: 1rem;
-          }
-        }
-
         &.empty {
           color: #999;
           gap: 1rem;
+        }
+      }
 
-          i {
-            font-size: 3rem;
+      .image-grid {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.75rem;
+        padding: 1rem;
+
+        .image-item {
+          cursor: pointer;
+          border-radius: 0.5rem;
+          overflow: hidden;
+          border: 1px solid #e5e7eb;
+          transition: all 0.2s ease;
+
+          &:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+          }
+
+          img {
+            display: block;
+            width: 200px;
+            height: 280px;
+            object-fit: cover;
+          }
+
+          .image-title {
+            display: block;
+            text-align: center;
+            font-size: 0.8rem;
+            color: #666;
+            padding: 0.25rem;
           }
         }
       }

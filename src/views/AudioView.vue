@@ -3,18 +3,21 @@
  * @Description: 音频视图
 -->
 <script setup>
+import { ref } from 'vue';
 import AudioRecorder from "./components/audio/AudioRecorder.vue";
+
+const activeTab = ref('record');
 </script>
 
 <template>
-  <Tabs value="0">
-    <TabList>
-      <Tab value="0">录音转文字</Tab>
-    </TabList>
-    <TabPanels>
-      <TabPanel value="0">
+  <div>
+    <v-tabs v-model="activeTab">
+      <v-tab value="record">录音转文字</v-tab>
+    </v-tabs>
+    <v-window v-model="activeTab">
+      <v-window-item value="record">
         <AudioRecorder />
-      </TabPanel>
-    </TabPanels>
-  </Tabs>
+      </v-window-item>
+    </v-window>
+  </div>
 </template>

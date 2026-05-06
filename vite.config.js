@@ -1,7 +1,6 @@
 import { defineConfig } from 'vite';
 import vue from '@vitejs/plugin-vue';
-import Components from 'unplugin-vue-components/vite';
-import { PrimeVueResolver } from '@primevue/auto-import-resolver';
+import vuetify from 'vite-plugin-vuetify';
 
 const host = process.env.TAURI_DEV_HOST;
 
@@ -9,9 +8,7 @@ const host = process.env.TAURI_DEV_HOST;
 export default defineConfig(async () => ({
   plugins: [
     vue(),
-    Components({
-      resolvers: [PrimeVueResolver()],
-    }),
+    vuetify(),
   ],
   // Vite options tailored for Tauri development and only applied in `tauri dev` or `tauri build`
   //

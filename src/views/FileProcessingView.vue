@@ -1,19 +1,26 @@
 <template>
   <div class="file-processing-view p-4">
-    <TabView>
-      <TabPanel header="PDF转图片">
+    <v-tabs v-model="activeTab">
+      <v-tab value="pdf">PDF转图片</v-tab>
+      <v-tab value="md">Markdown转PDF</v-tab>
+    </v-tabs>
+    <v-window v-model="activeTab">
+      <v-window-item value="pdf">
         <PdfToImage />
-      </TabPanel>
-      <TabPanel header="Markdown转PDF">
+      </v-window-item>
+      <v-window-item value="md">
         <MarkdownToPdf />
-      </TabPanel>
-    </TabView>
+      </v-window-item>
+    </v-window>
   </div>
 </template>
 
 <script setup>
+import { ref } from 'vue';
 import PdfToImage from '@/components/file-processing/pdf-to-image/PdfToImage.vue';
 import MarkdownToPdf from '@/components/file-processing/markdown-to-pdf/MarkdownToPdf.vue';
+
+const activeTab = ref('pdf');
 </script>
 
 <style scoped>

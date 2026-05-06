@@ -1,9 +1,11 @@
 <template>
   <div v-if="visible" class="loading-overlay">
     <div class="loading-spinner">
-      <ProgressSpinner
-        :style="{ width: spinnerSize, height: spinnerSize }"
-        :strokeWidth="strokeWidth"
+      <v-progress-circular
+        :size="parseInt(spinnerSize)"
+        :width="strokeWidth"
+        indeterminate
+        color="primary"
       />
       <div v-if="text" class="loading-text">{{ text }}</div>
     </div>
@@ -11,9 +13,6 @@
 </template>
 
 <script setup>
-import ProgressSpinner from "primevue/progressspinner";
-
-// 定义props
 defineProps({
   visible: {
     type: Boolean,

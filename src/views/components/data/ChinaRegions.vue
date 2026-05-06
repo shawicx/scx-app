@@ -1,7 +1,7 @@
 <script setup>
 import { onMounted, ref } from 'vue';
 import axios from 'axios';
-import { useToast } from 'primevue/usetoast';
+import { useSnackbar } from '@/composables/useSnackbar';
 import Loading from '@/components/Loading.vue';
 
 // 数据源URL
@@ -14,16 +14,16 @@ const LevelMap = {
   County: 'county',
 };
 
-const toast = useToast();
-const activeTab = ref(LevelMap.Province); // 当前激活的标签
-const provinces = ref([]); // 省份数据
-const cities = ref([]); // 城市数据
-const counties = ref([]); // 区县数据
-const selectedProvince = ref({ code: null, name: null }); // 选中的省份
-const selectedCity = ref({ code: null, name: null }); // 选中的城市
-const loading = ref(true); // 省份加载状态
-const citiesLoading = ref(false); // 城市加载状态
-const countiesLoading = ref(false); // 区县加载状态
+const snackbar = useSnackbar();
+const activeTab = ref(LevelMap.Province);
+const provinces = ref([]);
+const cities = ref([]);
+const counties = ref([]);
+const selectedProvince = ref({ code: null, name: null });
+const selectedCity = ref({ code: null, name: null });
+const loading = ref(true);
+const citiesLoading = ref(false);
+const countiesLoading = ref(false);
 
 // 下载所有当前等级数据
 const downloadAllCurrentLevelData = async () => {
@@ -59,20 +59,10 @@ const downloadAllCurrentLevelData = async () => {
     link.click();
     document.body.removeChild(link);
     window.URL.revokeObjectURL(url);
-    toast.add({
-      severity: 'success',
-      summary: '成功',
-      detail: `${filename}下载成功`,
-      life: 3000,
-    });
+    snackbar.success(`${filename}下载成功`);
   } catch (error) {
     console.error('Download all current level data error:', error);
-    toast.add({
-      severity: 'error',
-      summary: '错误',
-      detail: '下载数据失败',
-      life: 3000,
-    });
+    snackbar.error('下载数据失败');
   }
 };
 
@@ -98,37 +88,24 @@ const loadProvinces = async () => {
       }));
   } catch (error) {
     console.error('Load provinces error:', error);
-    toast.add({
-      severity: 'error',
-      summary: '错误',
-      detail: '加载省份数据失败',
-      life: 3000,
-    });
+    snackbar.error('加载省份数据失败');
   } finally {
     loading.value = false;
   }
 };
 
-/**
- * @description 选择省份并加载对应的城市数据
- * @param {Object} province - 省份对象
- */
 const selectProvince = async (province) => {
-  selectedProvince.value = { code: province.code, name: province.name }; // 存储省份的code和name
+  selectedProvince.value = { code: province.code, name: province.name };
   cities.value = [];
   counties.value = [];
-  activeTab.value = LevelMap.City; // 先切换到城市标签
+  activeTab.value = LevelMap.City;
   await handleProvinceChange();
 };
 
-/**
- * @description 选择城市并加载对应的区县数据
- * @param {Object} city - 城市对象
- */
 const selectCity = async (city) => {
-  selectedCity.value = { code: city.code, name: city.name }; // 存储城市的code和name
+  selectedCity.value = { code: city.code, name: city.name };
   counties.value = [];
-  activeTab.value = LevelMap.County; // 先切换到区县标签
+  activeTab.value = LevelMap.County;
   await handleCityChange();
 };
 
@@ -159,12 +136,7 @@ const handleProvinceChange = async () => {
       }));
   } catch (error) {
     console.error('Load cities error:', error);
-    toast.add({
-      severity: 'error',
-      summary: '错误',
-      detail: '加载城市数据失败',
-      life: 3000,
-    });
+    snackbar.error('加载城市数据失败');
   } finally {
     citiesLoading.value = false;
   }
@@ -195,12 +167,7 @@ const handleCityChange = async () => {
       }));
   } catch (error) {
     console.error('Load counties error:', error);
-    toast.add({
-      severity: 'error',
-      summary: '错误',
-      detail: '加载区县数据失败',
-      life: 3000,
-    });
+    snackbar.error('加载区县数据失败');
   } finally {
     countiesLoading.value = false;
   }
@@ -221,20 +188,10 @@ const downloadRegionData = async (region) => {
     link.click();
     document.body.removeChild(link);
     window.URL.revokeObjectURL(url);
-    toast.add({
-      severity: 'success',
-      summary: '成功',
-      detail: `${region.name}边界数据下载成功`,
-      life: 3000,
-    });
+    snackbar.success(`${region.name}边界数据下载成功`);
   } catch (error) {
     console.error('Download region data error:', error);
-    toast.add({
-      severity: 'error',
-      summary: '错误',
-      detail: '下载边界数据失败',
-      life: 3000,
-    });
+    snackbar.error('下载边界数据失败');
   }
 };
 
@@ -274,7 +231,7 @@ onMounted(() => {
       <span v-if="!!selectedCity?.code"> > {{ selectedCity.name }}</span>
     </div>
     <!-- 全局下载按钮 -->
-    <Button @click="downloadAllCurrentLevelData">下载所有数据</Button>
+    <v-btn @click="downloadAllCurrentLevelData" class="mb-4">下载所有数据</v-btn>
     <!-- 省份列表 -->
     <div v-if="activeTab === LevelMap.Province" class="region-container">
       <div class="region-list">
@@ -285,7 +242,7 @@ onMounted(() => {
           @click="selectProvince(province)"
         >
           <div class="region-name">{{ province.name }}</div>
-          <Button @click.stop="downloadRegionData(province)">下载数据</Button>
+          <v-btn size="small" @click.stop="downloadRegionData(province)">下载数据</v-btn>
         </div>
       </div>
       <!-- 加载蒙层 -->
@@ -302,7 +259,7 @@ onMounted(() => {
           @click="selectCity(city)"
         >
           <div class="region-name">{{ city.name }}</div>
-          <Button @click.stop="downloadRegionData(city)">下载数据</Button>
+          <v-btn size="small" @click.stop="downloadRegionData(city)">下载数据</v-btn>
         </div>
       </div>
       <!-- 加载蒙层 -->
@@ -314,7 +271,7 @@ onMounted(() => {
       <div class="region-list">
         <div v-for="county in counties" :key="county.code" class="region-card">
           <div class="region-name">{{ county.name }}</div>
-          <Button @click.stop="downloadRegionData(county)">下载数据</Button>
+          <v-btn size="small" @click.stop="downloadRegionData(county)">下载数据</v-btn>
         </div>
       </div>
       <!-- 加载蒙层 -->

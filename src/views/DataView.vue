@@ -6,25 +6,28 @@
  * @Description: 数据视图
 -->
 <script setup>
+import { ref } from 'vue';
 import ChinaRegions from "./components/data/ChinaRegions.vue";
 import RandomData from "./components/data/RandomData.vue";
+
+const activeTab = ref('regions');
 </script>
 
 <template>
-  <Tabs value="0">
-    <TabList>
-      <Tab value="0">中国行政区边界数据</Tab>
-      <Tab value="1">随机数据</Tab>
-    </TabList>
-    <TabPanels>
-      <TabPanel value="0">
+  <div class="data-view">
+    <v-tabs v-model="activeTab">
+      <v-tab value="regions">中国行政区边界数据</v-tab>
+      <v-tab value="random">随机数据</v-tab>
+    </v-tabs>
+    <v-window v-model="activeTab">
+      <v-window-item value="regions">
         <ChinaRegions />
-      </TabPanel>
-      <TabPanel value="1">
+      </v-window-item>
+      <v-window-item value="random">
         <RandomData />
-      </TabPanel>
-    </TabPanels>
-  </Tabs>
+      </v-window-item>
+    </v-window>
+  </div>
 </template>
 
 <style lang="scss" scoped>

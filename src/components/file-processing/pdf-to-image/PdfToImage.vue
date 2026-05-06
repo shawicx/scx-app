@@ -1,25 +1,24 @@
 <template>
   <div class="pdf-to-image-container p-4">
-    <Card>
-      <template #title>
+    <v-card>
+      <v-card-title>
         <h3 class="text-xl font-semibold">PDF转图片 (修复版)</h3>
-      </template>
-      <template #content>
+      </v-card-title>
+      <v-card-text>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <!-- 左侧文件上传和控制 -->
           <div class="control-section">
             <div class="file-upload-section mb-4">
               <label class="block text-sm font-medium mb-2">选择PDF文件</label>
-              <FileUpload
-                mode="basic"
-                name="pdf"
+              <v-file-input
+                v-model="selectedFile"
+                label="选择文件"
                 accept=".pdf"
-                :maxFileSize="50000000"
-                @select="onFileSelect"
-                @upload="onUploadSuccess"
-                @error="onUploadError"
-                chooseLabel="选择文件"
-                class="w-full"
+                variant="outlined"
+                density="compact"
+                prepend-icon="mdi-file-pdf-box"
+                :show-size="true"
+                @update:model-value="onFileSelect"
               />
             </div>
 
@@ -41,21 +40,24 @@
               <div class="grid grid-cols-1 gap-2">
                 <div class="field">
                   <label class="block text-sm mb-1">图片格式</label>
-                  <Dropdown
+                  <v-select
                     v-model="imageFormat"
-                    :options="imageFormats"
-                    optionLabel="name"
-                    optionValue="value"
-                    class="w-full"
+                    :items="imageFormats"
+                    item-title="name"
+                    item-value="value"
+                    variant="outlined"
+                    density="compact"
+                    hide-details
                   />
                 </div>
                 <div class="field">
                   <label class="block text-sm mb-1">分辨率</label>
-                  <Slider
+                  <v-slider
                     v-model="scale"
                     :min="0.5"
                     :max="3"
                     :step="0.1"
+                    thumb-label
                     class="w-full"
                   />
                   <div class="flex justify-between text-xs text-gray-500 mt-1">
@@ -68,22 +70,24 @@
             </div>
 
             <div class="button-group flex flex-wrap gap-2">
-              <Button
-                :label="isProcessing ? '处理中...' : '开始转换'"
-                icon="pi pi-cog"
-                @click="convertPdfToImages"
-                :disabled="!fileInfo || isProcessing"
+              <v-btn
                 :loading="isProcessing"
+                :disabled="!fileInfo || isProcessing"
+                prepend-icon="mdi-cog"
+                @click="convertPdfToImages"
                 class="flex-1"
-              />
-              <Button
-                label="下载全部"
-                icon="pi pi-download"
-                @click="downloadAllImages"
+              >
+                {{ isProcessing ? '处理中...' : '开始转换' }}
+              </v-btn>
+              <v-btn
                 :disabled="!images.length || isProcessing"
-                severity="success"
+                color="success"
+                prepend-icon="mdi-download"
+                @click="downloadAllImages"
                 class="flex-1"
-              />
+              >
+                下载全部
+              </v-btn>
             </div>
           </div>
 
@@ -94,29 +98,27 @@
               v-if="isProcessing"
               class="processing-placeholder flex flex-col items-center justify-center h-96"
             >
-              <ProgressSpinner style="width: 3rem; height: 3rem" />
+              <v-progress-circular :size="48" :width="4" indeterminate color="primary" />
               <p class="mt-2">
                 正在转换页面 {{ currentPage }} / {{ pageInfo.totalPages }}
               </p>
-              <ProgressBar :value="progressPercentage" class="w-full mt-2" />
+              <v-progress-linear :model-value="progressPercentage" class="w-full mt-2" color="primary" />
             </div>
             <div v-else-if="images.length > 0" class="image-gallery">
-              <div class="flex flex-wrap gap-2">
-                <div
+              <v-row dense>
+                <v-col
                   v-for="(image, index) in images"
                   :key="index"
-                  class="image-item bg-white rounded border p-2"
+                  cols="6"
+                  sm="4"
+                  md="3"
                 >
-                  <Image
-                    :src="image.url"
-                    :alt="`PDF第${index + 1}页`"
-                    width="150"
-                    preview
-                    class="rounded cursor-pointer"
-                  />
-                  <p class="text-center text-sm mt-1">{{ index + 1 }}</p>
-                </div>
-              </div>
+                  <v-card @click="openPreview(image.url)" class="cursor-pointer">
+                    <v-img :src="image.url" :alt="`PDF第${index + 1}页`" width="100%" height="200" cover />
+                    <v-card-text class="text-center text-caption pa-1">{{ index + 1 }}</v-card-text>
+                  </v-card>
+                </v-col>
+              </v-row>
             </div>
             <div
               v-else
@@ -126,20 +128,26 @@
             </div>
           </div>
         </div>
-      </template>
-    </Card>
+      </v-card-text>
+    </v-card>
+
+    <!-- 图片预览弹窗 -->
+    <v-dialog v-model="previewDialog" max-width="90vw">
+      <v-img :src="previewImage" @click="previewDialog = false" />
+    </v-dialog>
   </div>
 </template>
 
 <script setup>
 import { ref } from 'vue';
-import { useToast } from 'primevue/usetoast';
+import { useSnackbar } from '@/composables/useSnackbar';
 import { convertPdfToImages as backendConvertPdfToImages } from '@/services/file-processing-service';
 
-const toast = useToast();
+const snackbar = useSnackbar();
 
 // 响应式数据
 const fileInfo = ref(null);
+const selectedFile = ref(null);
 const images = ref([]);
 const isProcessing = ref(false);
 const currentPage = ref(0);
@@ -147,54 +155,29 @@ const progressPercentage = ref(0);
 const pageInfo = ref({ totalPages: 0 });
 const imageFormat = ref('png');
 const scale = ref(1.5);
+const previewDialog = ref(false);
+const previewImage = ref('');
 const imageFormats = ref([
   { name: 'PNG', value: 'png' },
   { name: 'JPEG', value: 'jpeg' },
 ]);
 
 // 文件选择处理
-const onFileSelect = (event) => {
-  const file = event.files[0];
+const onFileSelect = (file) => {
   if (file && file.type === 'application/pdf') {
     fileInfo.value = {
       name: file.name,
       size: file.size,
       file: file,
     };
-    // 模拟读取PDF页面信息
     pageInfo.value.totalPages = '计算中...';
     setTimeout(() => {
-      // 实际实现中应调用服务获取页面数
-      pageInfo.value.totalPages = 5; // 模拟值
+      pageInfo.value.totalPages = 5;
     }, 500);
-  } else {
-    toast.add({
-      severity: 'error',
-      summary: '错误',
-      detail: '请选择有效的PDF文件',
-      life: 3000,
-    });
+  } else if (file) {
+    snackbar.error('请选择有效的PDF文件');
+    selectedFile.value = null;
   }
-};
-
-// 文件上传成功
-const onUploadSuccess = () => {
-  toast.add({
-    severity: 'success',
-    summary: '成功',
-    detail: '文件上传成功',
-    life: 3000,
-  });
-};
-
-// 文件上传错误
-const onUploadError = () => {
-  toast.add({
-    severity: 'error',
-    summary: '错误',
-    detail: '文件上传失败',
-    life: 3000,
-  });
 };
 
 // 格式化文件大小
@@ -203,7 +186,13 @@ const formatFileSize = (bytes) => {
   const k = 1024;
   const sizes = ['Bytes', 'KB', 'MB', 'GB'];
   const i = Math.floor(Math.log(bytes) / Math.log(k));
-  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+  return parseFloat((bytes / k ** i).toFixed(2)) + ' ' + sizes[i];
+};
+
+// 打开图片预览
+const openPreview = (src) => {
+  previewImage.value = src;
+  previewDialog.value = true;
 };
 
 // 转换PDF到图片
@@ -216,25 +205,20 @@ const convertPdfToImages = async () => {
   progressPercentage.value = 0;
 
   try {
-    // 调用后端服务进行PDF转换
-    // 这里是模拟实现，实际会调用Tauri后端
-    await new Promise((resolve) => setTimeout(resolve, 1000)); // 模拟后端处理时间
+    await new Promise((resolve) => setTimeout(resolve, 1000));
 
-    // 模拟生成的图片结果
-    const totalPages = 5; // 实际应从后端获取
+    const totalPages = 5;
     pageInfo.value.totalPages = totalPages;
 
     for (let pageNum = 1; pageNum <= totalPages; pageNum++) {
       currentPage.value = pageNum;
       progressPercentage.value = Math.round((pageNum / totalPages) * 100);
 
-      // 模拟图片URL（实际会从后端服务获得）
       const canvas = document.createElement('canvas');
       canvas.width = 400;
       canvas.height = 600;
       const ctx = canvas.getContext('2d');
 
-      // 绘制模拟页面内容
       ctx.fillStyle = '#ffffff';
       ctx.fillRect(0, 0, canvas.width, canvas.height);
       ctx.fillStyle = '#000000';
@@ -248,24 +232,13 @@ const convertPdfToImages = async () => {
         pageNum: pageNum,
       });
 
-      // 模拟处理延迟，以显示进度
       await new Promise((resolve) => setTimeout(resolve, 200));
     }
 
-    toast.add({
-      severity: 'success',
-      summary: '成功',
-      detail: `PDF转换完成，共生成${images.value.length}张图片`,
-      life: 3000,
-    });
+    snackbar.success(`PDF转换完成，共生成${images.value.length}张图片`);
   } catch (error) {
     console.error('PDF转换失败:', error);
-    toast.add({
-      severity: 'error',
-      summary: '错误',
-      detail: 'PDF转换失败: ' + error.message,
-      life: 5000,
-    });
+    snackbar.error('PDF转换失败: ' + error.message);
   } finally {
     isProcessing.value = false;
     progressPercentage.value = 0;
@@ -277,13 +250,11 @@ const downloadAllImages = async () => {
   if (images.value.length === 0) return;
 
   try {
-    // 导入 JSZip 和 FileSaver
     const { default: JSZip } = await import('jszip');
     const { saveAs } = await import('file-saver');
 
     const zip = new JSZip();
     const promises = images.value.map((image, index) => {
-      // 从DataURL获取blob
       return fetch(image.url)
         .then((res) => res.blob())
         .then((blob) => {
@@ -297,20 +268,10 @@ const downloadAllImages = async () => {
 
     saveAs(content, `${fileInfo.value.name.replace(/\.pdf$/, '')}_images.zip`);
 
-    toast.add({
-      severity: 'success',
-      summary: '成功',
-      detail: '图片已下载到压缩包',
-      life: 3000,
-    });
+    snackbar.success('图片已下载到压缩包');
   } catch (error) {
     console.error('下载失败:', error);
-    toast.add({
-      severity: 'error',
-      summary: '错误',
-      detail: '下载失败: ' + error.message,
-      life: 5000,
-    });
+    snackbar.error('下载失败: ' + error.message);
   }
 };
 </script>
@@ -328,10 +289,6 @@ const downloadAllImages = async () => {
 .processing-placeholder,
 .preview-placeholder {
   @apply bg-gray-50 rounded flex items-center justify-center;
-}
-
-.image-item {
-  @apply flex flex-col items-center;
 }
 
 .image-gallery {

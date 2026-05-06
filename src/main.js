@@ -1,22 +1,11 @@
 import { createApp } from "vue";
-import PrimeVue from "primevue/config";
-import ToastService from 'primevue/toastservice';
-import Material from '@primevue/themes/material';
+import vuetify from "./plugins/vuetify";
 import { router } from "./utils/router";
 import App from "./App.vue";
 
 const app = createApp(App);
 
-app.use(PrimeVue, {
-    theme: {
-      preset: Material,
-      options: {
-        prefix: 'scx',
-        darkModeSelector: 'system',
-        cssLayer: false
-      }
-    }
-  })
-  .use(ToastService)
+app
+  .use(vuetify)
   .use(router)
   .mount("#app");

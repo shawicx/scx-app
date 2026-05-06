@@ -1,25 +1,37 @@
 <script setup>
 import { RouterLink, RouterView } from "vue-router";
+import { useTheme } from "vuetify";
+import SnackbarHost from "@/components/SnackbarHost.vue";
+
+const theme = useTheme();
+const prefersDark = window.matchMedia("(prefers-color-scheme: dark)");
+theme.global.name.value = prefersDark.matches ? "dark" : "light";
+prefersDark.addEventListener("change", (e) => {
+  theme.global.name.value = e.matches ? "dark" : "light";
+});
 </script>
 
 <template>
-  <div class="scx-container">
-    <header class="scx-header">
-      <nav>
-        <RouterLink to="/">首页</RouterLink>
-        <RouterLink to="/file">文件</RouterLink>
-        <RouterLink to="/data">数据</RouterLink>
-        <!-- <RouterLink to="/audio">录音</RouterLink> -->
-      </nav>
-    </header>
-    <main class="scx-content">
-      <RouterView v-slot="{ Component }">
-        <transition mode="out-in" name="slide-fade">
-          <component :is="Component"/>
-        </transition>
-      </RouterView>
-    </main>
-  </div>
+  <v-app>
+    <div class="scx-container">
+      <header class="scx-header">
+        <nav>
+          <RouterLink to="/">首页</RouterLink>
+          <RouterLink to="/file">文件</RouterLink>
+          <RouterLink to="/data">数据</RouterLink>
+          <!-- <RouterLink to="/audio">录音</RouterLink> -->
+        </nav>
+      </header>
+      <main class="scx-content">
+        <RouterView v-slot="{ Component }">
+          <transition mode="out-in" name="slide-fade">
+            <component :is="Component"/>
+          </transition>
+        </RouterView>
+      </main>
+    </div>
+    <SnackbarHost />
+  </v-app>
 </template>
 
 <style lang="scss" scoped>
